@@ -6,6 +6,17 @@ using UnityEngine;
 using NativeWebSocket;
 using UnityEngine.InputSystem;
 
+
+public static class ExtensionMethods
+{
+
+    public static float Remap(this float value, float from1, float to1, float from2, float to2)
+    {
+        return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
+    }
+
+}
+
 public class WorldCam : MonoBehaviour
 {
     WebSocket websocket;
@@ -23,6 +34,7 @@ public class WorldCam : MonoBehaviour
     private void OnSteering(InputValue value)
     {
         steering = value.Get<Vector2>().x;
+
     }
 
     // Start is called before the first frame update
@@ -49,9 +61,10 @@ public class WorldCam : MonoBehaviour
         websocket.OnMessage += (bytes) =>
         {
             // getting the message as a string
-            Texture2D tex = new Texture2D(480, 640);
+            Texture2D tex = new Texture2D(2, 2);
             tex.LoadImage(bytes);
             obj_to_render.GetComponent<Renderer>().material.mainTexture = tex;
+            print("frame parsed");
             /*var message = System.Text.Encoding.UTF8.GetString(bytes);
             Debug.Log("OnMessage! " + message);*/
         };
@@ -67,8 +80,13 @@ public class WorldCam : MonoBehaviour
     {
     #if !UNITY_WEBGL || UNITY_EDITOR
         websocket.DispatchMessageQueue();
-#endif
-        steeringWheel.transform.Rotate(new Vector3(0, 0, -steering));
+    #endif
+
+    float turning_angle = ExtensionMethods.Remap(steering, -1, 1, -160, 160);
+   // print(turning_angle * Time.deltaTime);
+    steeringWheel.transform.rotation =  Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, -turning_angle );
+
+
 
     }
 
@@ -77,7 +95,7 @@ public class WorldCam : MonoBehaviour
         if (websocket.State == WebSocketState.Open)
         {
             // Sending plain text
-            await websocket.SendText($"({throttle},{steering})");
+            await websocket.SendText($"{throttle},{steering}");
         }
     }
 
