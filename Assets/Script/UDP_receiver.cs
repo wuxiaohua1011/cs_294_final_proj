@@ -12,17 +12,15 @@ using Debug = UnityEngine.Debug;
 
 public class UDPStreamer
 {
-    string address;
-    int port;
-    long interval; // milisecond
-    int timeout;
-    Thread readThread;
-    UdpClient client;
-    System.Timers.Timer timer;
-    AutoResetEvent autoEvent = new AutoResetEvent(false);
+    protected string address;
+    protected int port;
+    protected long interval; // milisecond
+    protected int timeout;
+    protected Thread readThread;
+    protected UdpClient client;
+    protected System.Timers.Timer timer;
 
-    public string lastReceivedPacket = "";
-    public string allReceivedPackets = ""; // this one has to be cleaned up from time to time
+    private byte[] received_data; // this one has to be cleaned up from time to time
 
     public UDPStreamer(string address, int port, long interval = 500, int timeout = 1000)
     {
@@ -35,14 +33,14 @@ public class UDPStreamer
     }
     public void Start()
     {
-        timer = new System.Timers.Timer(500);
+        timer = new System.Timers.Timer(this.interval); // milisecond
         timer.Elapsed += this.ReceiveData;
         timer.AutoReset = true;
         timer.Enabled = true;
 
     }
 
-    private void InitializeClient()
+    protected void InitializeClient()
     {
         client = new UdpClient(this.address, this.port);
         client.Client.Blocking = true;
@@ -50,23 +48,41 @@ public class UDPStreamer
 
     }
 
-    public void ReceiveData(System.Object source, ElapsedEventArgs e)
+    public virtual void ReceiveData(System.Object source, ElapsedEventArgs e)
     {
         this.InitializeClient();
         try
         {
-            Byte[] sendBytes = Encoding.ASCII.GetBytes("ack");
+            IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
+            var buffer = new List<byte>();
 
+            // send ack to let the other end know where I am
+            Byte[] sendBytes = Encoding.ASCII.GetBytes("ack");
             client.Send(sendBytes, sendBytes.Length);
 
-            // receive bytes
-            IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
-            byte[] data = client.Receive(ref anyIP);
-            // encode UTF8-coded bytes to text format
-            string text = Encoding.UTF8.GetString(data);
-            lastReceivedPacket = text;
-            // update received messages
-            /* allReceivedPackets = allReceivedPackets + text;*/
+
+            while (true)
+            {
+                byte[] raw_data = client.Receive(ref anyIP); // receive data
+
+                // decode meta data
+                byte[] meta_data = new byte[9];
+                Array.Copy(raw_data, 0, meta_data, 0, meta_data.Length);
+                string text = Encoding.UTF8.GetString(meta_data);
+                int prefix_num = int.Parse(text.Substring(0, 3));
+                int total_num = int.Parse(text.Substring(3, 3));
+
+
+                byte[] data = new byte[raw_data.Length - 9];
+                Array.Copy(raw_data, 9, data, 0, data.Length);
+                buffer.AddRange(data);
+                if (prefix_num == total_num)
+                {
+                    received_data = buffer.ToArray();
+                    buffer.Clear();
+                    break;
+                }
+            }
         }
         catch (Exception err)
         {
@@ -74,10 +90,9 @@ public class UDPStreamer
         }
     }
 
-    public string GetLatestPacket()
+    public byte[] GetLatestData()
     {
-        allReceivedPackets = "";
-        return lastReceivedPacket;
+        return received_data;
     }
 
     // Stop reading UDP messages

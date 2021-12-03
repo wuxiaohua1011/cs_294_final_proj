@@ -19,31 +19,40 @@ public class UDP_receiver_with_gui : MonoBehaviour
     public String host = "127.0.0.1";
     public int port = 8009;
 
-    UDPStreamer udp_streamer;
+    VehicleStatemStreamer vehicle_state_streamer;
+    RGBStreamer rgb_streamer; 
     // Start is called before the first frame update
     void Start()
     {
-        udp_streamer = new UDPStreamer("127.0.0.1", 20001);
-        udp_streamer.Start();
+       /* vehicle_state_streamer = new VehicleStatemStreamer("192.168.1.11", 8003, 100);
+        vehicle_state_streamer.Start();*/
+
+
+        rgb_streamer = new RGBStreamer("192.168.1.11", 8001, 100);
+        rgb_streamer.Start();
+
     }
 
-    
+
 
     void Update()
     {
-        print(udp_streamer.GetLatestPacket());
         parse_oculus_control();
+        updateImage();
 
         float turning_angle = ExtensionMethods.Remap(steering, -1, 1, -160, 160);
         steeringWheel.transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, -turning_angle);
 
-
         // rpm 0 ==> z=30 | 8 ==> z=-210
-
         float rpm_angle = ExtensionMethods.Remap(Math.Abs(throttle), 0, 1, 30, -205);
         indicator_rpm.transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, rpm_angle);
     }
-
+    void updateImage()
+    {
+        Texture2D tex = new Texture2D(2, 2);
+        tex.LoadImage(this.rgb_streamer.getRGBData());
+        obj_to_render.GetComponent<Renderer>().material.mainTexture = tex;
+    }
     void parse_oculus_control()
     {
         OVRInput.Update();
@@ -59,7 +68,8 @@ public class UDP_receiver_with_gui : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        udp_streamer.Stop();
+        /*vehicle_state_streamer.Stop();*/
+        rgb_streamer.Stop();
     }
 
 }
