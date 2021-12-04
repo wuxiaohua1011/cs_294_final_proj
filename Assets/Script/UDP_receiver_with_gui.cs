@@ -24,8 +24,8 @@ public class UDP_receiver_with_gui : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-       /* vehicle_state_streamer = new VehicleStatemStreamer("192.168.1.11", 8003, 100);
-        vehicle_state_streamer.Start();*/
+        vehicle_state_streamer = new VehicleStatemStreamer("192.168.1.11", 8003, 100);
+        vehicle_state_streamer.Start();
 
 
         rgb_streamer = new RGBStreamer("192.168.1.11", 8001, 100);
@@ -46,6 +46,10 @@ public class UDP_receiver_with_gui : MonoBehaviour
         // rpm 0 ==> z=30 | 8 ==> z=-210
         float rpm_angle = ExtensionMethods.Remap(Math.Abs(throttle), 0, 1, 30, -205);
         indicator_rpm.transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, rpm_angle);
+
+        float speed = vehicle_state_streamer.vehicleState.getSpeed();
+        float speed_angle = ExtensionMethods.Remap(Math.Abs(speed), 0, 3, 30, -205);
+        indicator_speed.transform.rotation = Quaternion.Euler(transform.eulerAngles.x, -20, speed_angle);
     }
     void updateImage()
     {
@@ -68,7 +72,7 @@ public class UDP_receiver_with_gui : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        /*vehicle_state_streamer.Stop();*/
+        vehicle_state_streamer.Stop();
         rgb_streamer.Stop();
     }
 

@@ -22,8 +22,6 @@ public class RGBStreamer : UDPStreamer
 
         this.rgb_data = new byte[this.GetLatestData().Length - 16];
         Array.Copy(this.GetLatestData(), 16, this.rgb_data, 0, this.rgb_data.Length);
-
-        Debug.Log(this.rgb_data.Length);
     }
 
     public byte[] getRGBData()

@@ -32,4 +32,11 @@ public class VehicleState
                vx + ", " + vy + ", " + vz + ", " + ax + ", " + ay + ", " + az + ", " +
                gx + ", " + gy + ", " + gz + ", " + received_time;
     }
+
+    public float getSpeed()
+    {
+        Debug.Log(vx + ", " + vy + ", " + vz + ", " + Mathf.Sqrt(vx * vx + vy * vy + vz * vz));
+
+        return Mathf.Sqrt(vx * vx + vy * vy + vz * vz);
+    }
 }
