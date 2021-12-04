@@ -562,8 +562,7 @@ MonoBehaviour:
   indicator_speed: {fileID: 917686184}
   throttle: 0
   steering: 0
-  host: 127.0.0.1
-  port: 20001
+  host: 192.168.1.11
 --- !u!114 &1446332667
 MonoBehaviour:
   m_ObjectHideFlags: 0

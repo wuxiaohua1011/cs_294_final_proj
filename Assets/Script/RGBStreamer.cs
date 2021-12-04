@@ -19,7 +19,6 @@ public class RGBStreamer : UDPStreamer
     public override void ReceiveData(object source, ElapsedEventArgs e)
     {
         base.ReceiveData(source, e);
-
         this.rgb_data = new byte[this.GetLatestData().Length - 16];
         Array.Copy(this.GetLatestData(), 16, this.rgb_data, 0, this.rgb_data.Length);
     }

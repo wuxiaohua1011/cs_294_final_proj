@@ -45,7 +45,6 @@ public class UDPStreamer
         client = new UdpClient(this.address, this.port);
         client.Client.Blocking = true;
         client.Client.ReceiveTimeout = this.timeout;
-
     }
 
     public virtual void ReceiveData(System.Object source, ElapsedEventArgs e)
@@ -76,6 +75,7 @@ public class UDPStreamer
                 byte[] data = new byte[raw_data.Length - 9];
                 Array.Copy(raw_data, 9, data, 0, data.Length);
                 buffer.AddRange(data);
+
                 if (prefix_num == total_num)
                 {
                     received_data = buffer.ToArray();

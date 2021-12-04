@@ -35,8 +35,6 @@ public class VehicleState
 
     public float getSpeed()
     {
-        Debug.Log(vx + ", " + vy + ", " + vz + ", " + Mathf.Sqrt(vx * vx + vy * vy + vz * vz));
-
         return Mathf.Sqrt(vx * vx + vy * vy + vz * vz);
     }
 }

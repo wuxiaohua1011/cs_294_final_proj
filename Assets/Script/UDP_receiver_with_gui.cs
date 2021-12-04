@@ -17,19 +17,31 @@ public class UDP_receiver_with_gui : MonoBehaviour
     public float throttle = 0;
     public float steering = 0;
     public String host = "127.0.0.1";
-    public int port = 8009;
+
+    public float MAX_FORWARD_THROTTLE = 1;
+    public float MAX_REVERSE_THROTTLE = -1;
+    public float MAX_STEERING = 1;
+
+
+    private Texture2D tex;
+
 
     VehicleStatemStreamer vehicle_state_streamer;
-    RGBStreamer rgb_streamer; 
+    RGBStreamer rgb_streamer;
+    ControlStreamer control_streamer;
     // Start is called before the first frame update
     void Start()
     {
-        vehicle_state_streamer = new VehicleStatemStreamer("192.168.1.11", 8003, 100);
+
+        tex = new Texture2D(2, 2);
+        vehicle_state_streamer = new VehicleStatemStreamer(host, 8003, 100);
         vehicle_state_streamer.Start();
 
-
-        rgb_streamer = new RGBStreamer("192.168.1.11", 8001, 100);
+        rgb_streamer = new RGBStreamer(host, 8001, 100);
         rgb_streamer.Start();
+
+        control_streamer = new ControlStreamer(host, 8004, 200);
+        control_streamer.Start();
 
     }
 
@@ -37,8 +49,10 @@ public class UDP_receiver_with_gui : MonoBehaviour
 
     void Update()
     {
-        parse_oculus_control();
-        updateImage();
+        ParseOculusControl();
+        UpdateImage();
+        RegularizeControl(); 
+        control_streamer.UpdateControl(throttle, steering);
 
         float turning_angle = ExtensionMethods.Remap(steering, -1, 1, -160, 160);
         steeringWheel.transform.rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, -turning_angle);
@@ -51,13 +65,20 @@ public class UDP_receiver_with_gui : MonoBehaviour
         float speed_angle = ExtensionMethods.Remap(Math.Abs(speed), 0, 3, 30, -205);
         indicator_speed.transform.rotation = Quaternion.Euler(transform.eulerAngles.x, -20, speed_angle);
     }
-    void updateImage()
+
+    void RegularizeControl()
     {
-        Texture2D tex = new Texture2D(2, 2);
+        this.throttle = Math.Max(Math.Min(this.MAX_FORWARD_THROTTLE, this.throttle), this.MAX_REVERSE_THROTTLE);
+        this.steering = Math.Max(Math.Min(this.MAX_STEERING, this.steering), -this.MAX_STEERING);
+      
+    }
+
+    void UpdateImage()
+    {
         tex.LoadImage(this.rgb_streamer.getRGBData());
         obj_to_render.GetComponent<Renderer>().material.mainTexture = tex;
     }
-    void parse_oculus_control()
+    void ParseOculusControl()
     {
         OVRInput.Update();
 
@@ -74,6 +95,7 @@ public class UDP_receiver_with_gui : MonoBehaviour
     {
         vehicle_state_streamer.Stop();
         rgb_streamer.Stop();
+        control_streamer.Stop();
     }
 
 }
