@@ -13,10 +13,13 @@ using Debug = UnityEngine.Debug;
 public class VehicleStatemStreamer : UDPStreamer
 {
 
-    public VehicleState vehicleState = new VehicleState();
+    public VehicleState vehicleState;
 
     public VehicleStatemStreamer(string address, int port, long interval = 500, int timeout = 1000) : 
-        base(address, port, interval, timeout) { }
+        base(address, port, interval, timeout) { 
+        this.vehicleState = new VehicleState();
+    
+    }
 
     public override void ReceiveData(System.Object source, ElapsedEventArgs e)
     {

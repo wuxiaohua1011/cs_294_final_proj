@@ -562,7 +562,11 @@ MonoBehaviour:
   indicator_speed: {fileID: 917686184}
   throttle: 0
   steering: 0
-  host: 192.168.1.11
+  host: 127.0.0.1
+  MAX_FORWARD_THROTTLE: 0.2
+  MAX_REVERSE_THROTTLE: -0.2
+  MAX_STEERING: 1
+  STEERING_OFFSET: 0
 --- !u!114 &1446332667
 MonoBehaviour:
   m_ObjectHideFlags: 0
